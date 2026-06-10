@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Collections Visualizer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        h3 {
+            margin-top: 0;
+            color: #1e293b;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 5px;
+            gap: 5px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .console-box {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+        .error-text { color: #fca5a5; }
+        .success-text { color: #86efac; }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            flex: 1;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #2563eb; }
+        .explanation {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            border-radius: 4px;
+            color: #0369a1;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            min-height: 60px;
+        }
+        .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #475569;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3>Python Collections Visualizer</h3>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('list')">List []</div>
+        <div class="tab" onclick="switchTab('tuple')">Tuple ()</div>
+        <div class="tab" onclick="switchTab('set')">Set {}</div>
+        <div class="tab" onclick="switchTab('dict')">Dict {k:v}</div>
+    </div>
+
+    <div class="console-box" id="console">
+        <div class="badge" id="badge">Mutable | Ordered</div>
+        <div id="codeDisplay">my_list = ["forest", "water"]</div>
+        <div id="resultDisplay" style="margin-top: 10px; font-size: 1rem;"></div>
+    </div>
+
+    <div class="actions">
+        <button onclick="actionAddDuplicate()">Add Duplicate</button>
+        <button onclick="actionModify()">Modify Item</button>
+        <button onclick="actionAccess()">Access Data</button>
+        <button onclick="resetData()" style="background-color: #e2e8f0; color: #475569; flex: 0.5;">Reset</button>
+    </div>
+
+    <div class="explanation" id="explanation">
+        Select a collection type and click the action buttons to see how it behaves under the hood!
+    </div>
+</div>
+
+<script>
+    let currentType = 'list';
+    let data = {
+        list: '["forest", "water"]',
+        tuple: '("forest", "water")',
+        set: '{"forest", "water"}',
+        dict: '{"class1": "forest", "class2": "water"}'
+    };
+
+    function switchTab(type) {
+        currentType = type;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        resetData();
+    }
+
+    function resetData() {
+        data = {
+            list: '["forest", "water"]',
+            tuple: '("forest", "water")',
+            set: '{"forest", "water"}',
+            dict: '{"class1": "forest", "class2": "water"}'
+        };
+        updateConsole();
+        document.getElementById('resultDisplay').innerHTML = "";
+        
+        let badges = {
+            list: "Mutable | Ordered",
+            tuple: "Immutable | Ordered",
+            set: "Mutable | Unordered | Unique",
+            dict: "Mutable | Key-Value Pairs"
+        };
+        document.getElementById('badge').textContent = badges[currentType];
+        document.getElementById('explanation').textContent = "Collection reset. Try another action!";
+    }
+
+    function updateConsole() {
+        let prefix = "my_" + currentType + " = ";
+        document.getElementById('codeDisplay').textContent = prefix + data[currentType];
+    }
+
+    function showResult(text, isError, explanation) {
+        let resDisplay = document.getElementById('resultDisplay');
+        resDisplay.className = isError ? "error-text" : "success-text";
+        resDisplay.textContent = text;
+        document.getElementById('explanation').innerHTML = explanation;
+    }
+
+    function actionAddDuplicate() {
+        if (currentType === 'list') {
+            data.list = '["forest", "water", "water"]';
+            updateConsole();
+            showResult("> my_list.append('water')", false, "<b>Success!</b> Lists are ordered and allow duplicates, so 'water' was added to the end.");
+        } else if (currentType === 'tuple') {
+            showResult("> AttributeError: 'tuple' object has no attribute 'append'", true, "<b>Error!</b> Tuples are strictly <i>immutable</i>. You cannot add items to them once they are created.");
+        } else if (currentType === 'set') {
+            updateConsole(); // Stays the same
+            showResult("> my_set.add('water')", false, "<b>Success, but ignored!</b> Sets only store <i>unique</i> values. Python accepts the command but silently ignores the duplicate 'water'.");
+        } else if (currentType === 'dict') {
+            data.dict = '{"class1": "forest", "class2": "water", "class3": "water"}';
+            updateConsole();
+            showResult("> my_dict['class3'] = 'water'", false, "<b>Success!</b> Dictionaries allow duplicate <i>values</i> as long as the <i>keys</i> ('class3') are unique.");
+        }
+    }
+
+    function actionModify() {
+        if (currentType === 'list') {
+            data.list = '["urban", "water"]';
+            updateConsole();
+            showResult("> my_list[0] = 'urban'", false, "<b>Success!</b> Lists are <i>mutable</i>. We easily replaced the item at index 0.");
+        } else if (currentType === 'tuple') {
+            showResult("> TypeError: 'tuple' object does not support item assignment", true, "<b>Error!</b> Tuples are <i>immutable</i>. You cannot overwrite or change existing data inside them.");
+        } else if (currentType === 'set') {
+            showResult("> TypeError: 'set' object does not support item assignment", true, "<b>Error!</b> Sets are <i>unordered</i>, meaning they don't have an index (like [0]) to target for modification. You must remove and add items instead.");
+        } else if (currentType === 'dict') {
+            data.dict = '{"class1": "urban", "class2": "water"}';
+            updateConsole();
+            showResult("> my_dict['class1'] = 'urban'", false, "<b>Success!</b> Dictionaries are <i>mutable</i>. We targeted the key 'class1' and successfully overwrote its value.");
+        }
+    }
+
+    function actionAccess() {
+        if (currentType === 'list') {
+            showResult("> print(my_list[0])  ->  'forest'", false, "<b>Success!</b> Lists maintain a strict order, so accessing index [0] reliably returns the first item.");
+        } else if (currentType === 'tuple') {
+            showResult("> print(my_tuple[0])  ->  'forest'", false, "<b>Success!</b> Tuples maintain strict order just like lists, making numeric indexing perfectly valid.");
+        } else if (currentType === 'set') {
+            showResult("> print(my_set[0])  -> TypeError: 'set' object is not subscriptable", true, "<b>Error!</b> Sets are entirely <i>unordered</i>. Because they jumble their contents in memory, you cannot request an item by a specific position.");
+        } else if (currentType === 'dict') {
+            showResult("> print(my_dict['class1'])  ->  'forest'", false, "<b>Success!</b> Instead of using numeric positions, Dictionaries retrieve data using highly readable named <i>keys</i>.");
+        }
+    }
+</script>
+
+</body>
+</html>
